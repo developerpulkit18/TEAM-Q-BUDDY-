@@ -1,0 +1,534 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        384
+      ],
+      "id": "acc0db59-67e6-4664-81f5-6e65c3bcf64c",
+      "name": "WhatsApp Trigger",
+      "webhookId": "c70365ab-358f-4e75-819f-37bec1d879a0",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "I4REOSjjOuuYTnP9",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "You are Q-Buddy, the official AI assistant for our college Quantum University.\nYour job is to help students quickly find accurate information from verified college documents.\n\nYou must always answer using only the information that is available in the connected data sources, including:\n\nGoogle Docs (rulebooks, notice books, holiday calendar, exam guidelines)\n\nGoogle Sheets (faculty details, cabin numbers, events, workshops, academic data)\n\nCollege documents uploaded into the RAG system\n\nStructured data provided through N8n workflows\n\nIf a question is asked but the information does not exist in the documents, simply say:\n\n“I don’t have this information in the official documents yet, but once it's added, I’ll be able to help.”\n\nYou must not guess or create information.\n\nQ-Buddy can answer questions related to:\n\n1. Rules & Regulations\n\nAttendance policy\n\nExam rules\n\nDress code\n\nHostel rules\n\nLab/Library rules\n\nAcademic guidelines\nAll answers should come from the rulebooks provided.\n\n2. Exam & Academic Information\n\nExam schedules\n\nInternal test dates\n\nHoliday list\n\nTimetable\n\nAssignment guidelines\n\nRe-evaluation rules\n\nGrading system\n\nIf the document is updated, always give the newest version.\n\n3. Faculty Information\nUse data from Google Sheets:\n\nFaculty names\n\nDesignations\n\nDepartment\n\nCabin numbers\n\nConsultation hours\n\nEmail IDs\n\nDo not generate fake faculty details that are not present.\n\n4. Events & Workshops\nUse event sheets or notices:\n\nUpcoming workshops\n\nSeminars\n\nClub activities\n\nRegistration deadlines\n\nVenue and timings\n\n5. General Campus Queries\n\nCampus facilities\n\nBus routes\n\nImportant office locations\n\nContact info (from documents only)\n\nHow Q-Buddy Works Internally\n\nWhen a question is asked:\n\nBreak it into keywords and intent.\n\nSearch the document-storage using RAG.\n\nRetrieve the most relevant chunk (text piece).\n\nGenerate the answer using only that information.\n\nProvide short, clear, accurate responses.\n\nTone & Behavior\n\nBe friendly, simple, and helpful.\n\nNo complex jargon.\n\nNo made-up facts.\n\nAlways stay strictly inside the verified documents.\n\nIf a student asks for something outside the database, say you don’t have it yet.\n\nExample response structure:\n\n“Here’s what I found from the official documents…”\n\n“According to the exam notice…”\n\n“Based on the faculty sheet…”\n\nSpecial Rules\n\nNever give medical, legal, or personal advice.\n\nNever provide unofficial opinions.\n\nNever hallucinate details.\n\nWhen in doubt, ask the user to be more specific.\n\nYour Identity\n\nYou are Q-Buddy —\nA smart, trustworthy, document-based assistant built using N8n and RAG.\nYour entire role is to make college information simple, fast, and reliable.\n\n\n\nall the faculty/teachers details like cabin number and subject are there in the Faculty Cabin sheet \n\n\n\n\n\nStudents may use different spellings, nicknames, or variations for a faculty member’s name.\nYour job is to intelligently recognize these variations and match them to the correct official name from the faculty database.\n\nFor every query:\n\nIdentify whether the user is referring to a faculty member using an informal spelling, nickname, or phonetic variant.\n\nConvert that variant into the closest matching official faculty name from the sheet.\n\nThen search the database using only the official name.\n\nExamples to guide your matching:\n\n“Neetu ma’am”, “Nitu ma’am”, “Neetu mam”, “Meetu ma’am”, “Nito ma’am” → Neetu Mourya\n\n“Sharma sir”, “Sharmma sir”, “Sarma sir” → match to the nearest official name containing “Sharma”\n\n“Rahul sir”, “Rahool”, “Rahu sir” → Rahul (Official Name)\n\n“DK mam”, “D K ma’am”, “Deekay mam” → match to the official name starting with D.K.\n\nRules for name matching:\n\nTreat similar-sounding names as matches.\n\nTreat misspellings as possible matches.\n\nIf multiple faculty names are close, choose the most likely based on spelling similarity.\n\nNever invent a faculty name that is not in the official database.\n\nIf no close match exists, reply:\n“I couldn’t find a faculty name that matches this spelling in the official list.”"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        3320,
+        384
+      ],
+      "id": "ec23c53a-2cbf-47f8-9b03-86a43b3b15ad",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2816,
+        608
+      ],
+      "id": "684db37a-ed4d-4d5b-ab9a-1f1d3abec05e",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1wtDB7rv9c8fmhSd",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2944,
+        608
+      ],
+      "id": "bf282a0a-db1e-4c3f-b269-e565039fd678",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to search exam schedules and academic calendar information. This includes exam dates, test schedules, subject-wise exam timings, and academic event dates. Use this whenever asked about when exams are scheduled, exam timetables, or academic calendar queries.",
+        "documentId": {
+          "__rl": true,
+          "value": "1QbThaSlX_DRoJt6BigXAEyjL4IdP_PlaqKCjhS141ys",
+          "mode": "list",
+          "cachedResultName": "exam shedule (1)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QbThaSlX_DRoJt6BigXAEyjL4IdP_PlaqKCjhS141ys/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1286850907,
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QbThaSlX_DRoJt6BigXAEyjL4IdP_PlaqKCjhS141ys/edit#gid=1286850907"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3072,
+        608
+      ],
+      "id": "7f0b8947-e197-4f0c-9faf-011a58029152",
+      "name": "Exam Schedule",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1U4MeKbxBuLKDCFG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to search the Faculty List database. You can search by faculty name to find their cabin number, phone, email, designation, and department. You can also search by cabin number to find which faculty members are in that cabin. This tool searches the \"Faculty Name\" column when given a name, or can retrieve all rows to find faculty by cabin number. Always use this tool for any faculty-related queries including: who is in cabin X, what is the cabin number of faculty Y, faculty contact details, department information.",
+        "documentId": {
+          "__rl": true,
+          "value": "1UfiRKODBTtgvucnw-MBQeynlyzbNLb70LAOMcuh7p90",
+          "mode": "list",
+          "cachedResultName": "Faculty List_CSE&CA_Department",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UfiRKODBTtgvucnw-MBQeynlyzbNLb70LAOMcuh7p90/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 113871648,
+          "mode": "list",
+          "cachedResultName": "Faculty List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UfiRKODBTtgvucnw-MBQeynlyzbNLb70LAOMcuh7p90/edit#gid=113871648"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Faculty Name",
+              "lookupValue": "={{ $fromAI('faculty_name', 'The name of the faculty member to search for', 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3200,
+        608
+      ],
+      "id": "a71d5259-3ed8-4f49-81e6-46c999c2f601",
+      "name": "Faculty Cabin",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1U4MeKbxBuLKDCFG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "854210424439605",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "={{ $json.output || 'No response generated' }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        4176,
+        384
+      ],
+      "id": "059effdb-3a47-4445-b6a7-a8d71e9614de",
+      "name": "Send message",
+      "webhookId": "6a016b89-f4b4-4135-88d2-534340cad3db",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "mfO0kcnVha2w0guN",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1yO1uVBChmxo9LgkGgYKIJx70mRexeXsOeP0LP3FU4GM",
+          "mode": "list",
+          "cachedResultName": "📚 RULE BOOK_ Content Summary_I. LIBRARY RULES__B...",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yO1uVBChmxo9LgkGgYKIJx70mRexeXsOeP0LP3FU4GM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 515814651,
+          "mode": "list",
+          "cachedResultName": "📚 RULE BOOK Content Summary\nI.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yO1uVBChmxo9LgkGgYKIJx70mRexeXsOeP0LP3FU4GM/edit#gid=515814651"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3328,
+        608
+      ],
+      "id": "51509e25-f4b0-4163-b5e1-f15af1356d41",
+      "name": "Rule Book",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1U4MeKbxBuLKDCFG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "This tool provides structured attendance information for students.\nThe Google Sheet contains the following columns:\n\nQID – The official unique student ID used by the university.\n\nStudent Name – The full official name of the student.\n\nCourse – The program the student is enrolled in (e.g., B.Tech AI & ML).\n\nSection – The section or group the student belongs to.\n\nSpecialization – The student’s branch or specialization.\n\nHow the agent should use this tool:\n\nUse this tool when the user asks for:\n\nattendance details\n\nQID lookup\n\ncourse/section/specialization of a student\n\nverifying if a student exists\n\n\"find my QID\"\n\n“which section am I in?”\n\n“attendance of <name>”\n\n“details of <student>”\n\nIf the user gives only the name, check the sheet for the closest matching official name.\n\nHandle misspellings, short forms, initials, and variant spellings.\n\nExample: “Mahesh R.” or “Mahesh Rawni” → match to Mahesh Rawani if available.\n\nOnly answer using data present in the sheet.\n\nNever guess or generate attendance or academic details.\n\nIf the name or QID is not found, state clearly:\n“This student does not exist in the official attendance sheet.”\n\nIf multiple students have similar names, ask politely for clarifying info such as section or QID.\n\nAlways return the exact values as they appear in the Google Sheet, without modification.\n\nOutput Format:\nWhen returning student data, reply in a clean structured format like:\n\nName:\nQID:\nCourse:\nSection:\nSpecialization:",
+        "documentId": {
+          "__rl": true,
+          "value": "1DJTpVqTIJBScXRePteIiBKrc02BW3VHjgLMqqp_lxUo",
+          "mode": "list",
+          "cachedResultName": "Student Attandence sheet ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DJTpVqTIJBScXRePteIiBKrc02BW3VHjgLMqqp_lxUo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1825325185,
+          "mode": "list",
+          "cachedResultName": "add dummy sections for each stu",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DJTpVqTIJBScXRePteIiBKrc02BW3VHjgLMqqp_lxUo/edit#gid=1825325185"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3456,
+        608
+      ],
+      "id": "d8cac1b3-65f1-457e-95f3-6d4372c1b000",
+      "name": "Student Attendance",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1U4MeKbxBuLKDCFG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "This tool provides official transportation information for students.\nIt connects to a Google Sheet (or document) containing verified transport data.\nThe columns may include:\n\nRoute Number – The official bus/van route identifier.\n\nPickup Point – The designated student pickup location.\n\nDrop Point – The official drop location.\n\nTiming – Morning and evening timings for pickup and drop.\n\nDriver Name – The name of the assigned driver.\n\nDriver Contact – Contact number (if the college allows).\n\nVehicle Type – Bus, van, or other transport.\n\nIn-Charge – Faculty/transport officer managing that route.\n\nHow the agent should use this tool:\n\nUse this tool when the user asks for:\n\nbus route details\n\npickup/drop timings\n\n“Which bus goes from <location>?”\n\n“What’s my route number?”\n\n“Transport timing for <route>?”\n\n“Driver details of route <number>”\n\n“Transport in-charge contact”\n\n“From <city/area>, which bus is available?”\n\nIf the user mentions a location, match it to the closest correct pickup point in the sheet.\n\nHandle spelling mistakes, short forms, and local area variations.\n\nExample: “Vashist Nagar,” “Vashisht Ngr,” “Vasist Nagar” → treated as the same.\n\nOnly answer using official data from the sheet.\n\nDo NOT guess timings or create new routes.\n\nIf a route or stop is not found, respond:\n“This location or route is not listed in the official transport database.”\n\nIf multiple routes pass through similar locations, provide all options and ask for confirmation.\n\nAlways return the exact route information as stored in the sheet.\n\nOutput Format Example:\n\nWhen giving route details, respond in a clean structure:\n\nRoute Number:\nPickup Point:\nDrop Point:\nMorning Timing:\nEvening Timing:\nDriver Name:\nDriver Contact:\nIn-Charge:\nVehicle Type:",
+        "documentId": {
+          "__rl": true,
+          "value": "1xzixtbtzxa0zg38DVn6gVgUnLvRhMwXwfxSfp6pom3A",
+          "mode": "list",
+          "cachedResultName": "transport_details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xzixtbtzxa0zg38DVn6gVgUnLvRhMwXwfxSfp6pom3A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1900612185,
+          "mode": "list",
+          "cachedResultName": "Transport Details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xzixtbtzxa0zg38DVn6gVgUnLvRhMwXwfxSfp6pom3A/edit#gid=1900612185"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3584,
+        608
+      ],
+      "id": "1e6a28d3-0e6c-457d-a494-0a2c35c67672",
+      "name": "Transport Details",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1U4MeKbxBuLKDCFG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "This tool provides official information about all student clubs and societies in the university.\nIt connects to a Google Sheet (or document) containing structured data about clubs.\nTypical columns include:\n\nClub Name – The official registered name of the club.\n\nCategory/Domain – Technical, Cultural, Sports, Entrepreneurship, Literary, Music, Photography, etc.\n\nDescription – A short overview of what the club does.\n\nFaculty Coordinator – Name of the assigned faculty mentor.\n\nStudent President/Captain – Lead student representative.\n\nContact Details – Phone/email (if allowed).\n\nMeeting Days – Weekly schedule or practice timings.\n\nVenue – Where the club meets.\n\nUpcoming Events – Any events or activities planned.\n\nEligibility – Who can join (open to all / specific branches / years).\n\nHow Q-Buddy should use this tool:\n\nUse this tool when the user asks about:\n\n“What clubs are available?”\n\n“Tell me about the music club / tech club / photography club.”\n\n“Who is the coordinator of <club>?”\n\n“When does <club> meet?”\n\n“Where can I join <club>?”\n\n“Events of <club> this month.”\n\n“Which clubs allow first-year students?”\n\n“What does <club> do?”\n\nFor club names, handle spelling variations, short forms, and nicknames. Examples:\n\n“E-Cell,” “Entre club,” “Entrepreneurship cell” → same club\n\n“Music club,” “band club,” “music society” → same club\n\nOnly answer using official entries from the sheet.\n\nDo NOT invent clubs or events.\n\nIf a club is not listed, respond:\n“This club is not listed in the official clubs database.”\n\nIf multiple clubs match a query (example: two tech clubs), list both and briefly summarize each.\n\nAlways return the exact details as they appear in the sheet.\n\nOutput Format Example:\n\nUse a structured and clear response:\n\nClub Name:\nCategory:\nDescription:\nFaculty Coordinator:\nStudent President:\nMeeting Days:\nVenue:\nUpcoming Events:\nEligibility:\nContact:",
+        "documentId": {
+          "__rl": true,
+          "value": "1Q5XaprfQ_B_nJqB2NKdiq55N8aUKdbcwkAdJHXaWgtQ",
+          "mode": "list",
+          "cachedResultName": "QU Clubs Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Q5XaprfQ_B_nJqB2NKdiq55N8aUKdbcwkAdJHXaWgtQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1790813993,
+          "mode": "list",
+          "cachedResultName": "Grouped",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Q5XaprfQ_B_nJqB2NKdiq55N8aUKdbcwkAdJHXaWgtQ/edit#gid=1790813993"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3712,
+        608
+      ],
+      "id": "fe7e9bb8-4e44-4532-a572-0545a36b000e",
+      "name": "QU Clubs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1U4MeKbxBuLKDCFG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "This tool contains the official fee structure of the university.\nIt connects to a Google Sheet (or document) with complete and verified fee-related details.\nTypical columns include:\n\nCourse/Program Name – e.g., B.Tech AI & ML, BBA, BCA, MBA, etc.\n\nYear/Semester – 1st year, 2nd year, etc., or Semester 1/2/3…\n\nTuition Fee – The academic fee for the course.\n\nHostel Fee – Hostel rent + mess charges (if applicable).\n\nSecurity Fee – One-time refundable fee.\n\nAdmission Fee / Registration Fee\n\nExam Fee – Semester exam charges.\n\nTransport Fee – If transport service is used.\n\nScholarship / Discount Columns (if applicable)\n\nTotal Fee Payable – Total amount due.\n\nHow Q-Buddy should use this tool:\n\nUse this tool when the user asks:\n\n“What is the fee for B.Tech?”\n\n“Fee structure of BCA 1st year?”\n\n“What is the hostel fee?”\n\n“Exam fee for this semester?”\n\n“How much do I need to pay?”\n\n“What are the charges for transport?”\n\n“Total fee for MBA with hostel?”\n\n“Does QU have any scholarships?”\n\n“What is the security fee?”\n\nWhen the user says the course in casual wording, match it carefully:\n\n“AI branch,” “AI ML,” “AIML,” “B.Tech AI,” → B.Tech AI & ML\n\n“BCA sem 1” → BCA 1st year / Semester 1\n\n“hostel charges” → Hostel Fee column\n\n“transport cost” → Transport Fee\n\nOnly use official fee values from the sheet.\n\nNever guess or generate numbers.\n\nIf a course or semester is not found, reply:\n“That fee detail is not listed in the official fee structure database.”\n\nIf user asks “fee for my course,” first try to identify their course using the AttendanceDatabase tool (if allowed).\n\nOtherwise ask for course clarification.\n\nOutput fees in a clean structured format.\n\nOutput Format Example:\n\nCourse:\nYear/Semester:\nTuition Fee:\nHostel Fee:\nTransport Fee:\nExam Fee:\nSecurity Fee:\nOther Charges:\nTotal Payable:",
+        "documentId": {
+          "__rl": true,
+          "value": "1po4oQ3DTzhNi5I10ZvvVwArlpn20YE6noV2oN7SeIpg",
+          "mode": "list",
+          "cachedResultName": "Quantum University - Complete Fee Structure (2025...",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1po4oQ3DTzhNi5I10ZvvVwArlpn20YE6noV2oN7SeIpg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 123679673,
+          "mode": "list",
+          "cachedResultName": "Quantum University - Complete F",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1po4oQ3DTzhNi5I10ZvvVwArlpn20YE6noV2oN7SeIpg/edit#gid=123679673"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3840,
+        608
+      ],
+      "id": "59d541c5-89f1-4908-97d7-92f1e4ce4bab",
+      "name": "Fee Details",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1U4MeKbxBuLKDCFG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "This tool provides the official academic calendar of the university.\nIt connects to a Google Sheet (or a document) containing all important academic dates.\nTypical columns include:\n\nEvent Name – e.g., “Session Start,” “Mid-Sem Exams,” “End-Sem Exams,” “Winter Break,” “Result Declaration,” etc.\n\nStart Date – When the event begins.\n\nEnd Date – When the event ends.\n\nNotes – Any extra details (online/offline mode, special instructions, etc.).\n\nApplicable To – All students / specific courses / specific years.\n\nHow Q-Buddy should use this tool:\n\nUse this tool when the user asks anything related to dates or schedules:\n\n“When is the semester starting?”\n\n“What is the exam date for mid sem?”\n\n“When is the winter break?”\n\n“Academic calendar for 2024–25.”\n\n“When is the result coming?”\n\n“When are classes resuming?”\n\n“Dates for assignment submission week?”\n\n“When will the session end?”\n\nUnderstand user shorthand or casual phrasing:\n\n“MST,” “mid sem,” “midterms” → Mid-Sem Exams\n\n“end semester,” “finals,” “end sem” → End-Sem Exams\n\n“holidays,” “vacation,” “breaks” → Holiday/Break events\n\n“session starts” → Academic year start\n\n“class starts” → Session Start\n\nOnly use dates from the official sheet.\n\nNever predict future dates or guess.\n\nIf the event is not present, respond:\n“That event is not listed in the official academic calendar.”\n\nIf the user wants all events for a month or semester, filter by date range and return them.\n\nOutput answers in a clean, structured way.\n\nOutput Format Example:\n\nEvent:\nStart Date:\nEnd Date:\nNotes:\nApplicable To:",
+        "documentId": {
+          "__rl": true,
+          "value": "1dZonDxhIw1gg8eDIVMUKqKCxJjDRIK093awVfZPviug",
+          "mode": "list",
+          "cachedResultName": "ACADEMIC CALENDAR ODD...",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dZonDxhIw1gg8eDIVMUKqKCxJjDRIK093awVfZPviug/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1840304349,
+          "mode": "list",
+          "cachedResultName": "QUANTUM UNIVERSITY, ROORKEE\nACA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dZonDxhIw1gg8eDIVMUKqKCxJjDRIK093awVfZPviug/edit#gid=1840304349"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3968,
+        608
+      ],
+      "id": "41a1f969-6c74-4c03-bca4-c7484b409254",
+      "name": "QU ACADEMIC CALENDAR",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1U4MeKbxBuLKDCFG",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exam Schedule": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Faculty Cabin": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rule Book": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Student Attendance": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transport Details": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QU Clubs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fee Details": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QU ACADEMIC CALENDAR": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a28641a4-df60-4f40-9f3f-bf97773168e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "adc2ed6b2aa7f7ec763347b247a071cd4aad677244e5ee42acdc1275065423b1"
+  },
+  "id": "GVSVBtLPAZqZ93cO",
+  "tags": []
+}
